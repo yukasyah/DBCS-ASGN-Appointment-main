@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Appointment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Schedule Appointment</h1>
+            <div class="space-x-4">
+                <a href="/clerk/dashboard" class="hover:text-gray-200">Back to Dashboard</a>
+                <span class="font-medium"><%= username %></span>
+                <a href="/logout" class="hover:text-gray-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Select Doctor</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="doctorList"></div>
+        </div>
+
+        <div id="dateSection" class="bg-white p-6 rounded-lg shadow-lg mb-8 hidden">
+            <h2 class="text-xl font-semibold mb-4">Select Date</h2>
+            <input type="date" id="appointmentDate" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" min="">
+        </div>
+
+        <div id="timeSlotSection" class="bg-white p-6 rounded-lg shadow-lg mb-8 hidden">
+            <h2 class="text-xl font-semibold mb-4">Available Time Slots</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="timeSlotList"></div>
+        </div>
+
+        <div id="appointmentDetails" class="bg-white p-6 rounded-lg shadow-lg hidden">
+            <h2 class="text-xl font-semibold mb-4">Appointment Details</h2>
+            <form id="appointmentForm" class="space-y-6">
+                <input type="hidden" id="selectedDoctorId" name="doctorId">
+                <input type="hidden" id="selectedTimeSlotId" name="timeSlotId">
+                
+                <!-- Patient Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Patient</label>
+                    <div class="mt-1">
+                        <div class="grid grid-cols-1 gap-4 mb-4">
+                            <div class="relative">
+                                <input type="text" id="patientSearch" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Search patient by name or IC">
+                            </div>
+                        </div>
+                        <div id="patientList" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-60 overflow-y-auto">
+                            <!-- Patients will be loaded here -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="patientId" name="patientId" required>
+                </div>
+
+                <!-- Purpose -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Purpose of Visit</label>
+                    <select id="purpose" name="purpose" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select purpose</option>
+                        <option value="Cardiology consultation">Cardiology consultation</option>
+                        <option value="Cardiology follow-up">Cardiology follow-up</option>
+                        <option value="Endocrinology consultation">Endocrinology consultation</option>
+                        <option value="Endocrinology follow-up">Endocrinology follow-up</option>
+                        <option value="Pulmonology consultation">Pulmonology consultation</option>
+                        <option value="Pulmonology follow-up">Pulmonology follow-up</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Schedule Appointment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const doctors = JSON.parse('<%- JSON.stringify(doctors || []) %>');
+            const doctorList = document.getElementById('doctorList');
+            if (doctors && doctors.length > 0) {
+                doctors.forEach(doctor => {
+                    const div = document.createElement('div');
+                    div.className = 'p-4 border rounded-lg hover:bg-gray-50 cursor-pointer';
+                    div.innerHTML = `
+                        <h3 class="font-medium">${doctor.DoctorName}</h3>
+                        <p class="text-sm text-gray-600">${doctor.DepartmentName}</p>
+                        <p class="text-sm text-gray-500">${doctor.DoctorEmail}</p>
+                        <p class="text-sm text-gray-500">${doctor.DoctorPhoneNum}</p>
+                        <p class="text-sm text-blue-500 mt-2 hover:text-blue-700">Click to view available time slots</p>
+                    `;
+                    div.onclick = () => selectDoctor(doctor.DoctorID, doctor.DoctorName);
+                    doctorList.appendChild(div);
+                });
+            } else {
+                doctorList.innerHTML = '<p class="text-center text-gray-500">No doctors available</p>';
+            }
+
+            // Initialize patient list and search functionality
+            const patients = JSON.parse('<%- JSON.stringify(patients || []) %>');
+            const patientList = document.getElementById('patientList');
+            const patientSearch = document.getElementById('patientSearch');
+            const patientIdInput = document.getElementById('patientId');
+
+            function renderPatients(patientsToShow) {
+                patientList.innerHTML = '';
+                if (patientsToShow.length === 0) {
+                    patientList.innerHTML = '<p class="text-center text-gray-500 col-span-2">No patients found</p>';
+                    return;
+                }
+
+                patientsToShow.forEach(patient => {
+                    const div = document.createElement('div');
+                    div.className = 'p-4 border rounded-lg hover:bg-gray-50 cursor-pointer';
+                    div.innerHTML = `
+                        <h3 class="font-medium">${patient.PatientName}</h3>
+                        <p class="text-sm text-gray-500">IC: ${patient.IC}</p>
+                        <p class="text-sm text-gray-500">${patient.PatientEmail || ''}</p>
+                        <p class="text-sm text-gray-500">${patient.PatientPhoneNum || ''}</p>
+                    `;
+                    div.onclick = () => {
+                        // Highlight selected patient
+                        document.querySelectorAll('#patientList > div').forEach(d => d.classList.remove('ring-2', 'ring-blue-500'));
+                        div.classList.add('ring-2', 'ring-blue-500');
+                        patientIdInput.value = patient.PatientID;
+                        patientSearch.value = patient.PatientName;
+                    };
+                    patientList.appendChild(div);
+                });
+            }
+
+            // Initial render
+            renderPatients(patients);
+
+            // Search functionality
+            patientSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const filteredPatients = patients.filter(patient => 
+                    patient.PatientName.toLowerCase().includes(query) ||
+                    patient.IC.toLowerCase().includes(query) ||
+                    (patient.PatientEmail && patient.PatientEmail.toLowerCase().includes(query))
+                );
+                renderPatients(filteredPatients);
+            });
+
+            // Form submission
+            document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const patientId = document.getElementById('patientId').value;
+                const doctorId = document.getElementById('selectedDoctorId').value;
+                const timeSlotId = document.getElementById('selectedTimeSlotId').value;
+                const purpose = document.getElementById('purpose').value;
+
+                // Validate all fields are present
+                if (!patientId) {
+                    alert('Please select a patient');
+                    return;
+                }
+                if (!doctorId) {
+                    alert('Please select a doctor');
+                    return;
+                }
+                if (!timeSlotId) {
+                    alert('Please select a time slot');
+                    return;
+                }
+                if (!purpose) {
+                    alert('Please select a purpose');
+                    return;
+                }
+
+                const selectedDate = document.getElementById('appointmentDate').value;
+                if (!selectedDate) {
+                    alert('Please select a date');
+                    return;
+                }
+
+                const formData = {
+                    patientId: parseInt(patientId),
+                    doctorId: parseInt(doctorId),
+                    timeSlotId: parseInt(timeSlotId),
+                    appointmentDate: selectedDate,
+                    purpose: purpose
+                };
+
+                fetch('/clerk/appointments/new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        if (response.status === 400) {
+                            throw new Error(data.error || 'Invalid request. Please check all fields.');
+                        } else if (response.status === 401) {
+                            throw new Error('Session expired. Please login again.');
+                        } else {
+                            throw new Error(data.error || 'Failed to schedule appointment');
+                        }
+                    }
+                    alert('Appointment scheduled successfully');
+                    window.location.href = '/clerk/dashboard';
+                })
+                .catch(error => {
+                    if (error.message.includes('Session expired')) {
+                        window.location.href = '/clerk/login';
+                    } else {
+                        alert(error.message || 'Failed to schedule appointment. Please try again.');
+                    }
+                });
+            });
+
+            // Add event listener for date selection
+            document.getElementById('appointmentDate').addEventListener('change', function() {
+                const doctorId = document.getElementById('selectedDoctorId').value;
+                const doctorName = document.getElementById('dateSection').getAttribute('data-doctor-name');
+                const selectedDate = this.value;
+
+                // Show time slots section and load time slots
+                const timeSlotSection = document.getElementById('timeSlotSection');
+                timeSlotSection.classList.remove('hidden');
+                timeSlotSection.querySelector('h2').textContent = `Available Time Slots for Dr. ${doctorName} on ${selectedDate}`;
+                
+                // Load time slots for selected doctor and date
+                fetch(`/clerk/timeslots?doctorId=${doctorId}&date=${selectedDate}`)
+                    .then(response => response.json())
+                    .then(slots => {
+                        const timeSlotList = document.getElementById('timeSlotList');
+                        timeSlotList.innerHTML = '';
+                        if (slots.length === 0) {
+                            timeSlotList.innerHTML = '<p class="text-center text-gray-500">No available time slots</p>';
+                            return;
+                        }
+                        slots.forEach(slot => {
+                            const div = document.createElement('div');
+                            div.className = `p-4 border rounded-lg ${slot.DTSAvailability ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-100'} text-center`;
+                            div.innerHTML = `
+                                <p class="font-medium">${slot.Time}</p>
+                                ${!slot.DTSAvailability ? '<p class="text-red-500 text-sm">Not Available</p>' : ''}
+                            `;
+                            if (slot.DTSAvailability) {
+                                div.onclick = () => selectTimeSlot(slot.TimeSlotID, slot.Time, slot.AppointmentDate);
+                            }
+                            timeSlotList.appendChild(div);
+                        });
+                    })
+                    .catch(() => {
+                        const timeSlotList = document.getElementById('timeSlotList');
+                        timeSlotList.innerHTML = '<p class="text-center text-red-500">Error loading time slots</p>';
+                    });
+            });
+        });
+
+        // Function to handle doctor selection
+        function selectDoctor(doctorId, doctorName) {
+            // Set minimum date to today
+            document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
+            document.getElementById('selectedDoctorId').value = doctorId;
+            
+            // Show date section
+            const dateSection = document.getElementById('dateSection');
+            dateSection.classList.remove('hidden');
+            
+            // Hide time slots and appointment details
+            document.getElementById('timeSlotSection').classList.add('hidden');
+            document.getElementById('appointmentDetails').classList.add('hidden');
+            
+            // Store doctor name for later use
+            dateSection.setAttribute('data-doctor-name', doctorName);
+        }
+
+        // Function to handle time slot selection
+        function selectTimeSlot(timeSlotId, timeText, appointmentDate) {
+            document.getElementById('selectedTimeSlotId').value = timeSlotId;
+            const appointmentDetails = document.getElementById('appointmentDetails');
+            appointmentDetails.classList.remove('hidden');
+            
+            // Format the date for display
+            const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            appointmentDetails.querySelector('h2').textContent = `Appointment Details for ${timeText} on ${formattedDate}`;
+        }
+    </script>
+</body>
+</html>

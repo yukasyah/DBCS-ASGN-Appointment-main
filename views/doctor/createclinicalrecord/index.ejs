@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Clinical Record</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Create Clinical Record</h2>
+            <form action="/doctor/completeappointment/<%= appointmentId %>" method="POST">
+                <div class="mb-4">
+                    <label for="diagnosis" class="block text-gray-700">Diagnosis</label>
+                    <textarea id="diagnosis" name="diagnosis" class="shadow border rounded w-full py-2 px-3" required><%= clinicalData.diagnosis %></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="treatmentPlan" class="block text-gray-700">Treatment Plan</label>
+                    <textarea id="treatmentPlan" name="treatmentPlan" class="shadow border rounded w-full py-2 px-3" required><%= clinicalData.treatmentPlan %></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="medications" class="block text-gray-700">Medications</label>
+                    <textarea id="medications" name="medications" class="shadow border rounded w-full py-2 px-3"><%= clinicalData.medications %></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="notes" class="block text-gray-700">Notes</label>
+                    <textarea id="notes" name="notes" class="shadow border rounded w-full py-2 px-3"><%= clinicalData.notes %></textarea>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Submit and Complete Appointment</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

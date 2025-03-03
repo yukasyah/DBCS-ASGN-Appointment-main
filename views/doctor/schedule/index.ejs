@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Schedule</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="space-x-4 flex items-center">
+                <a href="/doctor/dashboard" class="text-white hover:text-gray-200" style="margin-left: 5px;">
+                    <i class="fas fa-home"></i>
+                </a>
+            </div>
+            <div class="space-x-4 flex items-center">
+                <h1 class="text-2xl font-bold">Doctor Schedule</h1>
+            </div>
+            <div class="space-x-4">
+                <span class="font-medium"><%= username %></span>
+                <a href="/logout" class="hover:text-gray-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Your Schedule</h2>
+            <div>
+                <% if (appointments.length > 0) { %>
+                    <ul>
+                        <% appointments.forEach(appointment => { %>
+                            <li class="p-4 border-b">
+                                <p><strong>Appointment ID:</strong> <%= appointment.AppointmentID %></p>
+                                <p><strong>Date:</strong> <%= appointment.AppointmentDate %></p>
+                                <p><strong>Time:</strong> <%= appointment.AppointmentTime %></p>
+                                <a href="/doctor/appointment/<%= appointment.AppointmentID %>" class="text-blue-600 hover:underline">View Appointment Details</a>
+                            </li>
+                        <% }); %>
+                    </ul>
+                <% } else { %>
+                    <p>No appointments scheduled.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

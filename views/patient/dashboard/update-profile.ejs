@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+
+    <nav class="bg-purple-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Update Profile</h1>
+            <a href='/patient/dashboard' class="text-white hover:text-gray-200">Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Update Your Profile</h2>
+            <form id="updateProfileForm" action="/patient/profile/update" method="POST">
+                <div class="mb-4">
+                    <label for="phone" class="block text-sm font-medium text-gray-600">Phone Number</label>
+                    <input type="text" id="phone" name="phone" class="w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div class="mb-4">
+                    <label for="address" class="block text-sm font-medium text-gray-600">Address</label>
+                    <input type="text" id="address" name="address" class="w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div class="mb-4">
+                    <label for="insurance" class="block text-sm font-medium text-gray-600">Medical Insurance</label>
+                    <input type="text" id="insurance" name="insurance" class="w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="submit" class="p-2 bg-green-500 text-white rounded hover:bg-green-700">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

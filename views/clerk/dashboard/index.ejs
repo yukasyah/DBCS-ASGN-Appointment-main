@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clerk Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-green-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Clerk Dashboard</h1>
+            <div class="space-x-4">
+                <span class="font-medium"><%= username %></span>
+                <a href="/logout" class="hover:text-gray-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Appointment Management</h2>
+            <div class="space-y-4">
+                <a href="/clerk/appointments/schedule" class="block w-full p-4 bg-green-500 text-white rounded hover:bg-green-700 text-center">
+                    Schedule New Appointment
+                </a>
+                <div id="pendingAppointments" class="space-y-2">
+                    <h3 class="font-medium">Pending Appointments</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+            <div class="space-y-4">
+                <a href="/clerk/appointments/view" class="block w-full p-4 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-center">
+                    View Schedule
+                </a>
+                <a href="/clerk/referrals/view" class="block w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-700 text-center">
+                    View Referrals
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-medium mb-2">Total Appointments</h3>
+                <p id="totalAppointments" class="text-3xl font-bold text-green-600">0</p>
+                <p class="text-sm text-gray-500 mt-1">All scheduled appointments</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-medium mb-2">Available Doctors</h3>
+                <p id="availableDoctors" class="text-3xl font-bold text-purple-600">0</p>
+                <p class="text-sm text-gray-500 mt-1">Doctors available for appointments</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-medium mb-2">Total Patients</h3>
+                <p id="totalPatients" class="text-3xl font-bold text-blue-600">0</p>
+                <p class="text-sm text-gray-500 mt-1">Registered patients</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="registrationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold">Register New Patient</h3>
+                <button onclick="closeRegistrationModal()" class="text-gray-600 hover:text-gray-800">&times;</button>
+            </div>
+            <form id="patientRegistrationForm" class="mt-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" name="fullName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">IC Number</label>
+                        <input type="text" name="ic" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <input type="date" name="dateOfBirth" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Gender</label>
+                        <select name="gender" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Select Gender</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" name="phoneNumber" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Address</label>
+                        <textarea name="address" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Medical Insurance Provider</label>
+                        <input type="text" name="insuranceProvider" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <button type="submit" class="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                        Register Patient
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/clerk/dashboard/data');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                const pendingAppointments = document.getElementById('pendingAppointments');
+                pendingAppointments.innerHTML = `
+                    <h3 class="font-medium">Pending Appointments</h3>
+                    ${data.pendingAppointments.map(apt => `
+                        <div class="p-3 border rounded hover:bg-gray-50">
+                            <div class="font-medium">${apt.patientName}</div>
+                            <div class="text-sm text-gray-600">${apt.time}</div>
+                            <div class="text-sm text-gray-500">${apt.doctor}</div>
+                        </div>
+                    `).join('')}
+                `;
+                
+                const stats = data.stats || {};
+                document.getElementById('totalAppointments').textContent = stats.totalAppointments || 0;
+                document.getElementById('totalPatients').textContent = stats.totalPatients || 0;
+                document.getElementById('availableDoctors').textContent = stats.availableDoctors || 0;
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        loadDashboardData();
+    </script>
+</body>
+</html>

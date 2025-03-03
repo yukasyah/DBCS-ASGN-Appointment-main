@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-purple-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Patient Dashboard</h1>
+            <div class="space-x-4">
+                <span id="patientName" class="font-medium"></span>
+                <a href="/logout" class="hover:text-gray-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h2 class="text-xl font-semibold mb-4">Patient Information</h2>
+                <div id="patientInfo" class="space-y-2">
+                </div>
+                <a href="/update-profile" class="w-full mt-4 p-4 bg-green-500 text-white rounded hover:bg-green-700 text-center block">
+                    Update Profile
+                </a>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">My Appointments</h2>
+                <div class="space-y-4">
+                    <div id="upcomingAppointments" class="mt-4">
+                        <h3 class="font-medium mb-2">Upcoming Appointments</h3>
+                    </div>
+                    <div id="pastAppointments" class="mt-4">
+                        <h3 class="font-medium mb-2">Past Appointments</h3>
+                    </div>
+            
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full">
+                <h2 class="text-xl font-semibold mb-4">Clinical Records</h2>
+                <div id="medicalRecords" class="space-y-4">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-medium mb-4">Recent Vitals</h3>
+                <div id="recentVitals" class="space-y-2">
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-medium mb-4">Current Medications</h3>
+                <div id="currentMedications" class="space-y-2">
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-medium mb-4">Allergies & Conditions</h3>
+                <div id="allergiesConditions" class="space-y-2">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/patient/dashboard/data');
+                const data = await response.json();
+                const patientDetails = data.patientInfo[0];
+                const patientName = data.patientInfo[0].patientName;
+
+                const patientNameElement = document.getElementById('patientName');
+
+                patientNameElement.textContent = patientName;
+
+            const medicalProfileExists = data.medicalProfileExists;
+
+            if (!medicalProfileExists) {
+                const medicalProfileSection = document.getElementById('medicalRecords');
+                medicalProfileSection.innerHTML = `
+                    <div class="p-4 border rounded bg-yellow-100">
+                        <p class="text-gray-600">You do not have a medical profile yet.</p>
+                        <a href="/medical-info" class="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-700 text-center block mt-4">
+                            Fill in Medical Profile
+                        </a>
+                    </div>
+                `;
+            } else {
+                const medicalRecords = document.getElementById('medicalRecords');
+                medicalRecords.innerHTML = data.medicalRecords.map(record => `
+                    <div class="p-4 border rounded hover:bg-gray-50">
+                        <div class="font-medium">${record.date}</div>
+                        <div class="text-sm text-gray-600">${record.type}</div>
+                        <div class="text-sm text-gray-500">${record.description}</div>
+                    </div>
+                `).join('');
+            }
+                        
+                // Update upcoming appointments
+                const upcomingAppointments = document.getElementById('upcomingAppointments');
+                upcomingAppointments.innerHTML = `
+                    <h3 class="font-medium mb-2">Upcoming Appointments</h3>
+                    ${data.upcomingAppointments.map(apt => `
+                        <div class="p-3 border rounded hover:bg-gray-50">
+                            <div class="font-medium">Dr. ${apt.doctorName}</div>
+                            <div class="text-sm text-gray-600">${apt.date.substring(0,10)} at ${apt.time.substring(11,19)}</div>
+                            <div class="text-sm text-gray-500">${apt.purpose}</div>
+                        </div>
+                    `).join('')}
+                `;
+
+                const patientInfo = document.getElementById('patientInfo');
+                patientInfo.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Name:</span>
+                    <span class="font-medium">${patientDetails.patientName}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">IC:</span>
+                    <span class="font-medium">${patientDetails.patientIC}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">DOB:</span>
+                    <span class="font-medium">${patientDetails.dob.substring(0, 10)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Gender:</span>
+                    <span class="font-medium">${patientDetails.gender}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Phone Number:</span>
+                    <span class="font-medium">${patientDetails.phonenum}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Address:</span>
+                    <span class="font-medium">${patientDetails.addr}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Insurance:</span>
+                    <span class="font-medium">${patientDetails.insurance}</span>
+                </div>
+            `;
+
+
+                // Update past appointments
+                const pastAppointments = document.getElementById('pastAppointments');
+                pastAppointments.innerHTML = `
+                    <h3 class="font-medium mb-2">Past Appointments</h3>
+                    ${data.pastAppointments.map(apt => `
+                        <div class="p-3 border rounded hover:bg-gray-50">
+                            <div class="font-medium">Dr. ${apt.doctorName}</div>
+                            <div class="text-sm text-gray-600">${apt.date.substring(0,10)} at ${apt.time.substring(11,19)}</div>
+                            <div class="text-sm text-gray-500">${apt.diagnosis}</div>
+                        </div>
+                    `).join('')}
+                `;
+
+                // Update medical records
+                const medicalRecords = document.getElementById('medicalRecords');
+                medicalRecords.innerHTML = data.medicalRecords.map(record => `
+                    <div class="p-4 border rounded hover:bg-gray-50">
+                        <div class="font-medium">${record.date}</div>
+                        <div class="text-sm text-gray-600">${record.type}</div>
+                        <div class="text-sm text-gray-500">${record.description}</div>
+                    </div>
+                `).join('');
+
+                // Update vitals
+                const recentVitals = document.getElementById('recentVitals');
+                recentVitals.innerHTML = Object.entries(data.vitals).map(([key, value]) => `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">${key}:</span>
+                        <span class="font-medium">${value}</span>
+                    </div>
+                `).join('');
+
+                // Update medications
+                const currentMedications = document.getElementById('currentMedications');
+                currentMedications.innerHTML = data.currentMedications.length > 0 
+                    ? data.currentMedications.map(med => `
+                        <div class="p-2 border rounded">
+                            <div class="font-medium">${med.type}</div>
+                            <div class="text-sm text-gray-500">${med.description}</div>
+                        </div>
+                    `).join('')
+                    : '<div class="text-gray-500">No medications found.</div>';
+
+                // Update allergies and conditions
+                const allergiesConditions = document.getElementById('allergiesConditions');
+                allergiesConditions.innerHTML = data.allergiesConditions.length > 0
+                    ? data.allergiesConditions.map(item => `
+                        <div class="p-2 border rounded">
+                            <div class="font-medium">${item.type}</div>
+                            <div class="text-sm text-gray-500">${item.description}</div>
+                        </div>
+                    `).join('')
+                    : '<div class="text-gray-500">No allergies or conditions found.</div>';
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
+</body>
+</html>
